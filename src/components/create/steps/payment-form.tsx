@@ -1,4 +1,5 @@
-import React from "react"
+import React, { useState } from "react"
+import { calculateCreationFee, formatEthValue } from "@/lib/config"
 
 interface PaymentFormProps {
   tokenData: any
@@ -7,8 +8,26 @@ interface PaymentFormProps {
 }
 
 export function PaymentForm({ tokenData, onPaymentConfirm, onBack }: PaymentFormProps) {
-  const feeAmount = "0.01" // ETH fee
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const feeAmount = calculateCreationFee()
+  const formattedFee = formatEthValue(feeAmount)
   const isReady = tokenData?.config?.name && tokenData?.config?.symbol
+
+  const handlePayment = async () => {
+    setIsProcessing(true)
+    try {
+      // Here you would integrate with your smart contract for actual payment
+      // For now, simulate a payment delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      onPaymentConfirm()
+    } catch (error) {
+      console.error('Payment failed:', error)
+      alert('Payment failed. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -63,11 +82,11 @@ export function PaymentForm({ tokenData, onPaymentConfirm, onBack }: PaymentForm
         </button>
 
         <button
-          onClick={onPaymentConfirm}
-          disabled={!isReady}
+          onClick={handlePayment}
+          disabled={!isReady || isProcessing}
           className="px-8 py-3 bg-green-500 text-white rounded-lg font-medium transition-all duration-300 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Pay {feeAmount} ETH & Create Token
+          {isProcessing ? 'Processing Payment...' : `Pay ${feeAmount} ETH & Create Token`}
         </button>
       </div>
     </div>
