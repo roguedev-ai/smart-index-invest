@@ -43,8 +43,8 @@ export function HeroSection() {
           <div className="flex justify-center">
             {!isConnected ? (
               <button
-                onHoverStart={() => setIsHovered(true)}
-                onHoverEnd={() => setIsHovered(false)}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 onClick={connectWallet}
                 disabled={isConnecting}
                 className="group relative inline-flex items-center justify-center rounded-full bg-black px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
