@@ -147,6 +147,7 @@ export default function AdminDashboard() {
               { id: 'users', label: 'Users', icon: UserIcon },
               { id: 'tokens', label: 'Tokens', icon: TokenIcon },
               { id: 'pricing', label: 'Pricing', icon: DollarIcon },
+              { id: 'admins', label: 'Admins', icon: UserIcon },
               { id: 'settings', label: 'Settings', icon: SettingIcon }
             ].map((tab) => {
               const Icon = tab.icon
@@ -461,6 +462,295 @@ export default function AdminDashboard() {
                       <span className="font-medium text-green-600">-{referral.discount * 100}%</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admins Tab */}
+        {selectedTab === 'admins' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg border">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Multi-Admin Management</h3>
+                  <p className="text-gray-600">Manage administrators and fee distribution</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Invite Admin
+                  </button>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Process Payments
+                  </button>
+                </div>
+              </div>
+
+              {/* Admin Hierarchy Overview */}
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-3xl font-bold text-red-600">1</div>
+                  <div className="text-sm text-red-700 font-medium">Master Admin</div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-3xl font-bold text-blue-600">2</div>
+                  <div className="text-sm text-blue-700 font-medium">Admin Users</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="text-3xl font-bold text-yellow-600">1</div>
+                  <div className="text-sm text-yellow-700 font-medium">Moderator</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="text-3xl font-bold text-gray-600">0</div>
+                  <div className="text-sm text-gray-700 font-medium">Support Staff</div>
+                </div>
+              </div>
+
+              {/* Current Admins List */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-md font-medium text-gray-900">Active Administrators</h4>
+                  <div className="text-sm text-gray-600">Total Earnings: 44.8 ETH</div>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      id: 'master-admin-001',
+                      username: 'MasterAdmin',
+                      role: 'Master',
+                      feeShare: '65%',
+                      totalEarned: '25.3 ETH',
+                      status: 'active',
+                      lastActive: 'Now',
+                      permissions: 'Full Access'
+                    },
+                    {
+                      id: 'admin-001',
+                      username: 'RyanAdmin',
+                      role: 'Admin',
+                      feeShare: '15%',
+                      totalEarned: '12.5 ETH',
+                      status: 'active',
+                      lastActive: '2 days ago',
+                      permissions: 'Management'
+                    },
+                    {
+                      id: 'admin-002',
+                      username: 'SarahAdmin',
+                      role: 'Admin',
+                      feeShare: '8%',
+                      totalEarned: '6.8 ETH',
+                      status: 'active',
+                      lastActive: '1 day ago',
+                      permissions: 'Management'
+                    },
+                    {
+                      id: 'moderator-001',
+                      username: 'JohnMod',
+                      role: 'Moderator',
+                      feeShare: '0%',
+                      totalEarned: '0.2 ETH',
+                      status: 'active',
+                      lastActive: '4 hours ago',
+                      permissions: 'Support'
+                    }
+                  ].map((admin) => (
+                    <div key={admin.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <UserIcon />
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-gray-900">{admin.username}</h5>
+                            <p className="text-sm text-gray-600">{admin.role} • {admin.permissions}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-6">
+                          <div className="text-center">
+                            <div className="font-semibold text-gray-900">{admin.feeShare}</div>
+                            <div className="text-sm text-gray-600">Fee Share</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-green-600">{admin.totalEarned}</div>
+                            <div className="text-sm text-gray-600">Total Earned</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 text-xs rounded ${
+                              admin.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {admin.status}
+                            </span>
+                            <button className="text-gray-600 hover:text-gray-800">⚙️</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {admin.role !== 'Moderator' && (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="text-sm text-gray-600">
+                            Last Active: {admin.lastActive}
+                            <span className="ml-4">
+                              Pending Payment: {admin.totalEarned === '25.3 ETH' ? '0.25 ETH' : '0.0 ETH'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fee Distribution Overview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Current Distribution */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Fee Distribution Structure</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Platform Maintenance</span>
+                      <span className="font-medium text-red-600">10%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Master Admin</span>
+                      <span className="font-medium text-green-600">65%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Admin Users</span>
+                      <span className="font-medium text-blue-600">20%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Referrals</span>
+                      <span className="font-medium text-purple-600">5%</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>Total</span>
+                      <span className="text-green-600">100%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment History */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Recent Payments</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="font-medium text-gray-900">MasterAdmin</p>
+                        <p className="text-sm text-gray-600">Token creation fees</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-green-600">+0.01625 ETH</p>
+                        <p className="text-sm text-gray-500">2 hours ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="font-medium text-gray-900">SarahAdmin</p>
+                        <p className="text-sm text-gray-600">Performance share</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-green-600">+0.002 ETH</p>
+                        <p className="text-sm text-gray-500">1 day ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <p className="font-medium text-gray-900">RyanAdmin</p>
+                        <p className="text-sm text-gray-600">Month-end payout</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-orange-600">Pending 0.00375 ETH</p>
+                        <p className="text-sm text-gray-500">Processing</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Admin Creation */}
+              <div className="mt-8 border rounded-lg p-4">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Create New Administrator</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input
+                      type="text"
+                      placeholder="AdminUser123"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Wallet Address</label>
+                    <input
+                      type="text"
+                      placeholder="0x..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email (Optional)</label>
+                    <input
+                      type="email"
+                      placeholder="admin@tokenmarket.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="admin">Admin</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="support">Support</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Fee Share % (Admin only)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="8"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end space-x-3">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                    Create Admin Account
+                  </button>
+                  <button className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors">
+                    Reset Form
+                  </button>
+                </div>
+              </div>
+
+              {/* Alternative: Send Invite */}
+              <div className="mt-6 border-l-4 border-blue-400 bg-blue-50 p-4 rounded">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2l3.09 6.26L22 8.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 13.14 2 8.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">
+                      Invitation System Available
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <p>Alternatively, send email invitations that expire after 48 hours for security.</p>
+                      <button className="mt-2 font-medium underline hover:text-blue-800">
+                        Switch to Invitation Mode →
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

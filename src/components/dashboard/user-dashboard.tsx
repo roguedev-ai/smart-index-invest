@@ -2,18 +2,44 @@
 
 import { useState } from "react"
 import { useWallet } from "@/components/providers/wallet-provider"
-import {
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  Tokens,
-  History,
-  Settings,
-  ExternalLink,
-  PlusCircle,
-  BarChart3,
-  Eye
-} from "lucide-react"
+import { mockPortfolio } from "@/lib/trading"
+
+// Fallback icons
+const SwapIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+  </svg>
+)
+const PortfolioIconComponent = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+)
+const TrendUpIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+)
+const TrendDownIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+  </svg>
+)
+const TokenIconUser = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+  </svg>
+)
+const HistoryIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
+const SettingIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066 1.758 1.758 0 001.053 2.643c1.646.366 1.646 2.688 0 3.054-.483 1.036-1.683 1.036-2.166 0a1.724 1.724 0 00-2.573 1.066c1.244.749 1.244 2.684 0 3.433a1.724 1.724 0 00-2.573-1.066c-1.646-.366-1.646-2.688 0-3.054.483-1.036 1.683-1.036 2.166 0a1.724 1.724 0 002.573-1.066c-.427-1.756-2.925-1.756-3.35 0zM12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
+  </svg>
+)
 
 // Mock user data
 const userData = {
@@ -50,7 +76,7 @@ export function UserDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full text-center">
-          <Wallet className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <SwapIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Wallet</h2>
           <p className="text-gray-600 mb-6">View your token portfolio and track performance</p>
         </div>
@@ -70,7 +96,7 @@ export function UserDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <PlusCircle className="h-5 w-5 mr-2" />
+                <PlusIcon className="h-5 w-5 mr-2" />
                 Create New Token
               </button>
             </div>
@@ -83,10 +109,11 @@ export function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
-              { id: 'portfolio', label: 'Portfolio', icon: Tokens },
-              { id: 'activity', label: 'Activity', icon: History },
-              { id: 'market', label: 'Markets', icon: TrendingUp },
-              { id: 'settings', label: 'Settings', icon: Settings }
+              { id: 'portfolio', label: 'Portfolio', icon: TokenIconUser },
+              { id: 'trading', label: 'Trading', icon: SwapIcon },
+              { id: 'activity', label: 'Activity', icon: HistoryIcon },
+              { id: 'market', label: 'Markets', icon: TrendUpIcon },
+              { id: 'settings', label: 'Settings', icon: SettingIcon }
             ].map((tab) => {
               const Icon = tab.icon
               return (
