@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { config } from "@/lib/config"
+import { defaultPricingConfig } from "@/lib/pricing"
 
 // Fallback icon components in case lucide-react fails
 const DollarIcon = () => (
@@ -145,6 +146,7 @@ export default function AdminDashboard() {
               { id: 'revenue', label: 'Revenue', icon: DollarIcon },
               { id: 'users', label: 'Users', icon: UserIcon },
               { id: 'tokens', label: 'Tokens', icon: TokenIcon },
+              { id: 'pricing', label: 'Pricing', icon: DollarIcon },
               { id: 'settings', label: 'Settings', icon: SettingIcon }
             ].map((tab) => {
               const Icon = tab.icon
@@ -333,6 +335,134 @@ export default function AdminDashboard() {
                   <div className="text-2xl font-bold text-gray-900">{count}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Tab */}
+        {selectedTab === 'pricing' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg border">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Dynamic Pricing Management</h3>
+                  <p className="text-gray-600">Control pricing tiers, services, and discount rules</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Add Pricing Tier
+                  </button>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+
+              {/* Pricing Tiers */}
+              <div className="mb-8">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Pricing Tiers</h4>
+                <div className="space-y-4">
+                  {defaultPricingConfig.tiers.map((tier) => (
+                    <div key={tier.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <h5 className="font-medium text-gray-900">{tier.name}</h5>
+                          {tier.featured && (
+                            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg font-bold text-green-600">{tier.baseFee} ETH</span>
+                          <button className="text-gray-600 hover:text-gray-800">✏️</button>
+                          <button className={`text-sm ${tier.enabled ? 'text-green-600' : 'text-red-600'}`}>
+                            {tier.enabled ? 'Enabled' : 'Disabled'}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{tier.description}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tier.features.map((feature, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Token Type Multipliers */}
+              <div className="mb-8">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Token Type Multipliers</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(defaultPricingConfig.tokenTypes).map(([type, multiplier]) => (
+                    <div key={type} className="text-center border rounded-lg p-4">
+                      <div className="font-medium text-gray-900">{type}</div>
+                      <div className="text-lg font-bold text-blue-600">{multiplier}x</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add-on Services */}
+              <div className="mb-8">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Add-on Services</h4>
+                <div className="space-y-4">
+                  {Object.entries(defaultPricingConfig.services).map(([service, price]) => (
+                    <div key={service} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="font-medium text-gray-900 capitalize">{service}</div>
+                      <div className="text-lg font-bold text-green-600">
+                        {service.toLowerCase().includes('usd') ? `$${price}` : `${price} ETH`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Discount Rules */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bulk Discounts */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Bulk Discount Rules</h4>
+                  <div className="space-y-2">
+                    {defaultPricingConfig.discounts.bulkDiscounts.map((bulk, idx) => (
+                      <div key={idx} className="text-sm text-gray-600">
+                        {bulk.min}+ tokens: <span className="font-medium text-green-600">-{bulk.discount * 100}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Loyalty Discounts */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Loyalty Discounts</h4>
+                  <div className="space-y-2">
+                    {defaultPricingConfig.discounts.loyaltyDiscounts.map((loyalty, idx) => (
+                      <div key={idx} className="text-sm text-gray-600">
+                        {loyalty.tokensCreated}+ tokens: <span className="font-medium text-green-600">-{loyalty.discount * 100}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Referral Code Management */}
+              <div className="mt-8 border rounded-lg p-4">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Referral Codes</h4>
+                <div className="space-y-2">
+                  {defaultPricingConfig.discounts.referralDiscounts.map((referral, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="font-mono bg-gray-100 px-3 py-1 rounded text-sm">
+                        {referral.code}
+                      </div>
+                      <span className="font-medium text-green-600">-{referral.discount * 100}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
