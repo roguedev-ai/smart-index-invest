@@ -2,52 +2,74 @@
 
 import { useState, useEffect } from "react"
 import { config } from "@/lib/config"
-import {
-  DollarSign,
-  Users,
-  Tokens,
-  TrendingUp,
-  Settings,
-  BarChart3,
-  Wallet,
-  PieChart,
-  Info,
-  RefreshCw,
-  ExternalLink
-} from "lucide-react"
 
-// Mock data for demonstration
-const mockData = {
-  totalRevenue: 25.3,
-  totalTokensCreated: 847,
-  totalUsers: 3456,
-  monthlyGrowth: 23.5,
-  recentTokenCreationFee: 0.01,
-  adminWallet: "0x742d35Cc6634C0532925a3b844Bc454e4438f44f",
-  monthlyTransactions: [
-    { date: "2025-09-13", amount: 0.01, token: "MyToken", user: "0x1234...5678" },
-    { date: "2025-09-12", amount: 0.01, token: "SuperCoin", user: "0x5678...9012" },
-    { date: "2025-09-11", amount: 0.01, token: "EpicToken", user: "0x9012...3456" },
-    { date: "2025-09-10", amount: 0.01, token: "MagicToken", user: "0x3456...7890" },
-    { date: "2025-09-09", amount: 0.01, token: "PowerToken", user: "0x7890...1234" }
-  ],
-  tokenStatistics: [
-    { type: "Standard ERC20", count: 523, percentage: 61.7 },
-    { type: "Flexible ERC20", count: 189, percentage: 22.3 },
-    { type: "Commercial ERC20", count: 89, percentage: 10.5 },
-    { type: "Security ERC20", count: 46, percentage: 5.4 }
-  ],
-  revenueTrends: [
-    { month: "Jan", amount: 8.2 },
-    { month: "Feb", amount: 12.1 },
-    { month: "Mar", amount: 15.8 },
-    { month: "Apr", amount: 18.5 },
-    { month: "May", amount: 22.1 },
-    { month: "Jun", amount: 20.3 },
-    { month: "Jul", amount: 16.7 },
-    { month: "Aug", amount: 23.8 },
-    { month: "Sep", amount: 25.3 }
-  ]
+// Fallback icon components in case lucide-react fails
+const DollarIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+  </svg>
+)
+
+const UserIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3-8a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+  </svg>
+)
+
+const TokenIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+  </svg>
+)
+
+const UptrendIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+)
+
+const SettingIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066 1.758 1.758 0 001.053 2.643c1.646.366 1.646 2.688 0 3.054-.483 1.036-1.683 1.036-2.166 0a1.724 1.724 0 00-2.573 1.066c1.244.749 1.244 2.684 0 3.433a1.724 1.724 0 00-2.573-1.066c-1.646-.366-1.646-2.688 0-3.054.483-1.036 1.683-1.036 2.166 0a1.724 1.724 0 002.573-1.066c-.427-1.756-2.925-1.756-3.35 0zM12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
+  </svg>
+)
+
+const ChartIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+)
+
+const RotateIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+)
+
+// Real data structure for production (initially empty)
+// In production, this would be populated by API calls to backend
+const liveData = {
+  totalRevenue: 0, // Real ETH collected
+  totalTokensCreated: 0, // Actual deployments
+  totalUsers: 0, // Real wallet connections
+  monthlyGrowth: 0, // Real growth calculations
+  recentTransactions: [], // Array of real blockchain transactions
+  tokenStatistics: {
+    "Standard ERC20": 0,
+    "Flexible ERC20": 0,
+    "Commercial ERC20": 0,
+    "Security ERC20": 0
+  },
+  revenueTrends: [], // Array of actual monthly revenue
+  recentActivity: [], // Real user activities
+}
+
+// Data loading state
+const dataLoadingStates = {
+  revenue: false,
+  transactions: false,
+  users: false,
+  tokens: false
 }
 
 export default function AdminDashboard() {
@@ -74,8 +96,8 @@ export default function AdminDashboard() {
             </p>
           )}
         </div>
-        <div className="text-gray-400">
-          <Icon size={32} />
+        <div className="text-blue-600">
+          <Icon />
         </div>
       </div>
     </div>
@@ -101,8 +123,9 @@ export default function AdminDashboard() {
                 }`}
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Refreshing...' : 'Refresh Data'}
+                <RotateIcon />
+                <span className={`ml-2 ${isLoading ? 'hidden' : ''}`}>Refresh Data</span>
+                {isLoading && <span className="ml-2">Refreshing...</span>}
               </button>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Admin Wallet</p>
@@ -118,11 +141,11 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
-              { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'revenue', label: 'Revenue', icon: DollarSign },
-              { id: 'users', label: 'Users', icon: Users },
-              { id: 'tokens', label: 'Tokens', icon: Tokens },
-              { id: 'settings', label: 'Settings', icon: Settings }
+              { id: 'overview', label: 'Overview', icon: ChartIcon },
+              { id: 'revenue', label: 'Revenue', icon: DollarIcon },
+              { id: 'users', label: 'Users', icon: UserIcon },
+              { id: 'tokens', label: 'Tokens', icon: TokenIcon },
+              { id: 'settings', label: 'Settings', icon: SettingIcon }
             ].map((tab) => {
               const Icon = tab.icon
               return (
@@ -152,30 +175,30 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatCard
                 title="Total Revenue"
-                value={mockData.totalRevenue}
-                change="+12.5% vs last month"
-                icon={DollarSign}
+                value={liveData.totalRevenue}
+                change={liveData.totalRevenue > 0 ? "+0% vs last month" : "No revenue yet"}
+                icon={DollarIcon}
                 color="bg-green-50 border-green-200"
                 suffix=" ETH"
               />
               <StatCard
                 title="Tokens Created"
-                value={mockData.totalTokensCreated}
-                change="+18.2% vs last month"
-                icon={Tokens}
+                value={liveData.totalTokensCreated}
+                change={liveData.totalTokensCreated > 0 ? "+0" : "No tokens yet"}
+                icon={TokenIcon}
                 color="bg-blue-50 border-blue-200"
               />
               <StatCard
                 title="Active Users"
-                value={mockData.totalUsers}
-                change="+24.3% vs last month"
-                icon={Users}
+                value={liveData.totalUsers}
+                change={liveData.totalUsers > 0 ? "+0" : "No users yet"}
+                icon={UserIcon}
                 color="bg-purple-50 border-purple-200"
               />
               <StatCard
                 title="Monthly Growth"
-                value={mockData.monthlyGrowth}
-                icon={TrendingUp}
+                value={liveData.monthlyGrowth}
+                icon={UptrendIcon}
                 color="bg-yellow-50 border-yellow-200"
                 suffix="%"
               />
@@ -186,18 +209,25 @@ export default function AdminDashboard() {
               <div className="bg-white p-6 rounded-lg border">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Transactions</h3>
                 <div className="space-y-4">
-                  {mockData.monthlyTransactions.map((tx, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                      <div>
-                        <p className="font-medium text-gray-900">{tx.token}</p>
-                        <p className="text-sm text-gray-500">{tx.user}</p>
+                  {liveData.recentTransactions.length > 0 ? (
+                    liveData.recentTransactions.map((tx: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                        <div>
+                          <p className="font-medium text-gray-900">{tx.token}</p>
+                          <p className="text-sm text-gray-500">{tx.user}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-green-600">+{tx.amount} ETH</p>
+                          <p className="text-sm text-gray-500">{tx.date}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-green-600">+{tx.amount} ETH</p>
-                        <p className="text-sm text-gray-500">{tx.date}</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center">
+                      <p className="text-gray-500">No transactions yet</p>
+                      <p className="text-sm text-gray-400 mt-1">Revenue will appear here once users create tokens</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -205,15 +235,15 @@ export default function AdminDashboard() {
               <div className="bg-white p-6 rounded-lg border">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Token Type Distribution</h3>
                 <div className="space-y-3">
-                  {mockData.tokenStatistics.map((stat, index) => (
+                  {Object.entries(liveData.tokenStatistics).map(([type, count]: [string, number], index: number) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-blue-500 mr-3"></div>
-                        <span className="text-sm font-medium text-gray-900">{stat.type}</span>
+                        <span className="text-sm font-medium text-gray-900">{type}</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="text-sm text-gray-600 mr-3">{stat.percentage}%</span>
-                        <span className="text-sm font-medium text-gray-900">{stat.count}</span>
+                        <span className="text-sm text-gray-600 mr-3">{count > 0 ? ((count / Object.values(liveData.tokenStatistics).reduce((sum, val) => sum + val, 0) || 1) * 100).toFixed(1) : 0}%</span>
+                        <span className="text-sm font-medium text-gray-900">{count}</span>
                       </div>
                     </div>
                   ))}
@@ -241,7 +271,7 @@ export default function AdminDashboard() {
                 <h4 className="text-md font-medium text-gray-900 mb-3">Monthly Revenue</h4>
                 <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
                   <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <ChartIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500">Chart visualization would be here</p>
                   </div>
                 </div>
@@ -253,11 +283,11 @@ export default function AdminDashboard() {
                   <div className="text-sm text-gray-600">Current Fee</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">847</div>
+                  <div className="text-2xl font-bold text-gray-900">{liveData.totalTokensCreated}</div>
                   <div className="text-sm text-gray-600">This Month</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{mockData.totalRevenue} ETH</div>
+                  <div className="text-2xl font-bold text-gray-900">{liveData.totalRevenue} ETH</div>
                   <div className="text-sm text-gray-600">Total Revenue</div>
                 </div>
               </div>
@@ -271,15 +301,15 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">User Analytics</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">{mockData.totalUsers}</div>
+                <div className="text-3xl font-bold text-gray-900">{liveData.totalUsers}</div>
                 <div className="text-sm text-gray-600">Total Users</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">2,345</div>
+                <div className="text-3xl font-bold text-green-600">{liveData.totalUsers}</div>
                 <div className="text-sm text-gray-600">Active This Month</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">72%</div>
+                <div className="text-3xl font-bold text-blue-600">0%</div>
                 <div className="text-sm text-gray-600">Retention Rate</div>
               </div>
             </div>
@@ -291,16 +321,16 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg border p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Token Creation Statistics</h3>
             <div className="space-y-4">
-              {mockData.tokenStatistics.map((stat, index) => (
+              {Object.entries(liveData.tokenStatistics).map(([type, count]: [string, number], index: number) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
-                    <Tokens className="h-8 w-8 text-blue-600 mr-4" />
-                    <div>
-                      <div className="font-medium text-gray-900">{stat.type}</div>
-                      <div className="text-sm text-gray-600">{stat.percentage}% of total</div>
+                    <TokenIcon />
+                    <div className="ml-4">
+                      <div className="font-medium text-gray-900">{type}</div>
+                      <div className="text-sm text-gray-600">{count > 0 ? ((count / Object.values(liveData.tokenStatistics).reduce((sum, val) => sum + val, 0) || 1) * 100).toFixed(1) : 0}% of total</div>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.count}</div>
+                  <div className="text-2xl font-bold text-gray-900">{count}</div>
                 </div>
               ))}
             </div>

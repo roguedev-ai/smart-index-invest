@@ -1,7 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { TrendingUp, TrendingDown } from "lucide-react"
+
+// Custom trending icons to avoid lucide-react dependency
+const TrendingUpIcon = () => (
+  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+)
+
+const TrendingDownIcon = () => (
+  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+  </svg>
+)
 
 // Mock live crypto prices
 const tickerPrices = [
@@ -61,9 +73,9 @@ export function CryptoTicker() {
                   crypto.change.startsWith('+') ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {crypto.change.startsWith('+') ? (
-                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <TrendingUpIcon />
                   ) : (
-                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <TrendingDownIcon />
                   )}
                   {crypto.change}
                 </div>
