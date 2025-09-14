@@ -1,11 +1,24 @@
 // Core token types based on ERC standards
+// Core token types based on ERC standards
 export interface TokenInfo {
   name: string;
   symbol: string;
-  decimals: number;
+  decimals?: number; // Optional for NFTs
   totalSupply?: string;
   address?: string;
   network: NetworkInfo;
+  tokenType: 'erc20' | 'erc721';
+}
+
+// NFT specific interface
+export interface NFTCollectionInfo extends TokenInfo {
+  description?: string;
+  externalUrl?: string;
+  imageUrl?: string;
+  maxSupply?: number;
+  mintingFee?: string;
+  royaltyPercentage?: number;
+  baseURI?: string;
 }
 
 export interface TokenCreationParams {
