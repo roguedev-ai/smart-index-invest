@@ -110,6 +110,7 @@ export function UserDashboard() {
           <div className="flex space-x-8">
             {[
               { id: 'portfolio', label: 'Portfolio', icon: TokenIconUser },
+              { id: 'liquidity', label: 'Liquidity', icon: SwapIcon },
               { id: 'trading', label: 'Trading', icon: SwapIcon },
               { id: 'activity', label: 'Activity', icon: HistoryIcon },
               { id: 'market', label: 'Markets', icon: TrendUpIcon },
