@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/providers/wallet-provider";
 import { Header } from "@/components/layout/header";
+import { SimpleHelpSystem } from "@/components/help/simple-help";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         <WalletProvider>
           <Header />
           {children}
+          <SimpleHelpSystem />
         </WalletProvider>
       </body>
     </html>

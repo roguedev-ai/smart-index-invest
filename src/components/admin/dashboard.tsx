@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { config } from "@/lib/config"
 import { defaultPricingConfig } from "@/lib/pricing"
+import { walletMetrics } from "@/lib/wallet-metrics"
 
 // Fallback icon components in case lucide-react fails
 const DollarIcon = () => (

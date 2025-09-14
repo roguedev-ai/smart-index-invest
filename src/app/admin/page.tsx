@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { config } from "@/lib/config"
-import AdminDashboard from "@/components/admin/dashboard"
+import SimpleAdminDashboard from "@/components/admin/simple-dashboard"
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -62,5 +62,5 @@ export default function AdminPage() {
     )
   }
 
-  return <AdminDashboard />
+  return <SimpleAdminDashboard />
 }
