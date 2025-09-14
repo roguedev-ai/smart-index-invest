@@ -65,22 +65,6 @@ const tokenTypes = [
       </svg>
     ),
   },
-  {
-    id: "nft-collection",
-    name: "NFT Collection",
-    description: "ERC721 NFT collection with minting capabilities",
-    features: ["NFT Minting", "IPFS Metadata", "Royalty Support", "Collection Management"],
-    icon: (
-      <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-        />
-      </svg>
-    ),
-  },
 ]
 
 interface TokenTypeSelectionProps {
@@ -107,11 +91,11 @@ export function TokenTypeSelection({
           Choose Your Token Type
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Select the type of token or NFT collection you want to create
+          Select the type of token you want to create
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {tokenTypes.map((type) => (
           <div
             key={type.id}
