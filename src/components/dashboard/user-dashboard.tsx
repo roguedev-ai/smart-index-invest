@@ -1,17 +1,20 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
+import { useWallet } from "@/components/providers/wallet-provider"
 import Link from "next/link"
 import { SmartIndex, SmartIndexTypes } from "@/types/smart-index"
 
+// Inherit from WalletToken interface
 interface WalletToken {
+  address: string
   symbol: string
   name: string
   balance: string
   value: string
   change24h: number
-  icon?: string
+  decimals: number
 }
 
 interface Contract {
@@ -142,21 +145,19 @@ const BarChart3 = () => (
   </svg>
 )
 
-// Mock user data
-const userData = {
-  totalTokens: 12,
-  totalValue: 0.834,
-  recentActivity: [
-    { action: "Created", token: "MyAwesomeToken", date: "2025-09-13", value: 0.01, status: "success" },
-    { action: "Created", token: "SuperDuperCoin", date: "2025-09-12", value: 0.01, status: "success" },
-    { action: "Created", token: "EpicToken", date: "2025-09-10", value: 0.01, status: "success" }
-  ],
-  portfolio: [
-    { name: "MyAwesomeToken", symbol: "MAT", supply: 1000000, type: "Standard ERC20", created: "2025-09-13", network: "ethereum" },
-    { name: "SuperDuperCoin", symbol: "SDC", supply: 5000000, type: "Flexible ERC20", created: "2025-09-12", network: "polygon" },
-    { name: "EpicToken", symbol: "ETK", supply: 10000000, type: "Commercial ERC20", created: "2025-09-10", network: "bsc" }
-  ]
-}
+const SocialIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h-8a3 3 0 01-3-3V8a3 3 0 013-3h8a3 3 0 013 3v9a3 3 0 01-3 3z" />
+    <circle cx="9" cy="10" r="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+)
+
+const RefreshIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 0015.418 7a8.001 8.001 0 00-7.749 8.026L9 15l6-6-6-6-1.395 1.394A8.002 8.002 0 0122.762 12H19v1z" />
+  </svg>
+)
 
 // Mock crypto market data
 const cryptoPrices = [
@@ -170,18 +171,36 @@ const cryptoPrices = [
 
 export function UserDashboard() {
   const { user, isAuthenticated, logout } = useAuth()
-  const [selectedTab, setSelectedTab] = useState("overview")
-  const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
+  const {
+    address,
+    isConnected,
+    network,
+    balance,
+    tokens,
+    transactions,
+    socialEnabled,
+    socialProfiles,
+    refreshData,
+    activateSocialFeatures
+  } = useWallet()
 
-  // User data
-  const [ walletTokens, setWalletTokens ] = useState<WalletToken[]>([])
+  const [selectedTab, setSelectedTab] = useState("portfolio")
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+
+  // User data arrays now use real wallet data
   const [userIndexes, setUserIndexes] = useState<SmartIndex[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
-  const [tradeHistory, setTradeHistory] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
 
   // Mobile menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await refreshData()
+    setRefreshing(false)
+  }
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -193,7 +212,7 @@ export function UserDashboard() {
     try {
       setLoading(true)
 
-      // Fetch user's indexes (existing functionality)
+      // Fetch user's smart indexes
       if (user?.address) {
         const indexesResponse = await fetch(`/api/user/${user.address}/indexes`)
         if (indexesResponse.ok) {
@@ -201,23 +220,13 @@ export function UserDashboard() {
           setUserIndexes(data.indexes || [])
         }
 
-        // Fetch user's contracts (API to be created)
+        // Fetch user's contracts
         const contractsResponse = await fetch(`/api/user/${user.address}/contracts`)
         if (contractsResponse.ok) {
           const data = await contractsResponse.json()
           setContracts(data.contracts || [])
         }
-
-        // Fetch user's trading history
-        const tradesResponse = await fetch(`/api/user/${user.address}/trades`)
-        if (tradesResponse.ok) {
-          const data = await tradesResponse.json()
-          setTradeHistory(data.trades || [])
-        }
       }
-
-      // Simulate wallet tokens from localStorage (production: blockchain calls)
-      loadWalletTokens()
 
     } catch (error) {
       console.error('Error fetching user data:', error)
@@ -226,52 +235,57 @@ export function UserDashboard() {
     }
   }
 
-  const loadWalletTokens = () => {
-    // Mock wallet tokens - in production: fetch from wallet/blockchain
-    const mockTokens: WalletToken[] = [
-      { symbol: 'ETH', name: 'Ethereum', balance: '2.145', value: '$7,543.25', change24h: 2.4 },
-      { symbol: 'USDC', name: 'USD Coin', balance: '1,250.00', value: '$1,250.00', change24h: 0.0 },
-      { symbol: 'WMATIC', name: 'Wrapped Polygon', balance: '685.23', value: '$557.84', change24h: -1.8 },
-      { symbol: 'PIT_001', name: 'My Smart Index', balance: '150.00', value: '$375.00', change24h: 5.7 },
-      { symbol: 'PIT_002', name: 'DeFi Kings', balance: '75.50', value: '$283.88', change24h: 8.9 }
-    ]
-    setWalletTokens(mockTokens)
+  // Calculate portfolio value from real wallet tokens
+  const totalWalletValue = tokens.reduce((total, token) => {
+    const tokenValue = parseFloat(token.value.replace(/[$,]/g, ''))
+    return total + (isNaN(tokenValue) ? 0 : tokenValue)
+  }, 0)
+
+  const walletChange24h = tokens.reduce((total, token) => {
+    const tokenValue = parseFloat(token.value.replace(/[$,]/g, ''))
+    const changeValue = isNaN(tokenValue) ? 0 : (tokenValue * (token.change24h / 100))
+    return total + changeValue
+  }, 0)
+
+  // Format wallet address for display
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
   }
 
-  const totalWalletValue = walletTokens.reduce((total, token) => {
-    return total + parseFloat(token.value.replace(/[$,]/g, ''))
-  }, 0)
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 
-  const walletChange24h = walletTokens.reduce((total, token) => {
-    return total + (parseFloat(token.value.replace(/[$,]/g, '')) * (token.change24h / 100))
-  }, 0)
-
-  if (!isAuthenticated) {
+  // Redirect to wallet connection if not connected
+  if (!isConnected || !address) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
           <div className="text-6xl mb-6">🔐</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Please Connect Your Wallet
+            Connect Your Wallet
           </h1>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-8">
             Access your personal dashboard to view wallet contents, track trading performance,
             monitor your smart indexes, and manage deployed contracts.
           </p>
           <div className="space-y-4">
-            <Link href="/web-wallet/create">
+            <Link href="/wallet/onboard">
               <button className="block w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-700 transition-all duration-300">
-                Create Web Wallet →
+                Connect to MetaMask →
               </button>
             </Link>
-            <p className="text-sm text-gray-600">or</p>
-            <Link href="/">
-              <button className="block w-full px-8 py-4 border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all duration-300">
-                Connect External Wallet →
-              </button>
-            </Link>
+            <div className="text-center">
+              <p className="text-xs text-gray-500">
+                Supported: MetaMask • WalletConnect (coming soon)
+              </p>
+            </div>
           </div>
-
         </div>
       </div>
     )
@@ -279,15 +293,32 @@ export function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header with wallet status */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
-              <p className="text-gray-600 mt-1">Track your tokens and portfolio performance</p>
+              <div className="flex items-center gap-4 mt-1">
+                <span className="text-sm text-gray-600">Network: {network || 'Unknown'}</span>
+                <span className="text-sm text-gray-600">Address: {formatAddress(address)}</span>
+                {socialEnabled && (
+                  <div className="flex items-center gap-1">
+                    <SocialIcon />
+                    <span className="text-sm text-green-600">Social</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshIcon className="h-5 w-5 mr-2" />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Create New Token
@@ -332,26 +363,17 @@ export function UserDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
 
-        {/* Portfolio Tab */}
+        {/* Portfolio Tab - Now using real wallet data */}
         {selectedTab === 'portfolio' && (
           <div>
-            {/* Overview Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Overview Stats - Real wallet data */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Tokens</p>
-                    <p className="text-2xl font-bold text-gray-900">{userData.totalTokens}</p>
-                  </div>
-                  <CoinIcon />
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Portfolio Value</p>
-                    <p className="text-2xl font-bold text-gray-900">{userData.totalValue} ETH</p>
+                    <p className="text-sm text-gray-600">Wallet Balance</p>
+                    <p className="text-2xl font-bold text-gray-900">{balance ? `${parseFloat(balance).toFixed(4)} ETH` : 'Loading...'}</p>
+                    <p className="text-xs text-gray-500">Network: {network}</p>
                   </div>
                   <WalletIcon />
                 </div>
@@ -360,21 +382,58 @@ export function UserDashboard() {
               <div className="bg-white p-6 rounded-lg border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">This Month</p>
-                    <p className="text-2xl font-bold text-blue-600">+3</p>
+                    <p className="text-sm text-gray-600">Portfolio Value</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalWalletValue.toFixed(2)}</p>
+                    <p className={`text-sm ${walletChange24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {walletChange24h >= 0 ? '+' : ''}{walletChange24h.toFixed(2)} (24h)
+                    </p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-blue-600" />
+                  <TrendingUpBig className={walletChange24h >= 0 ? 'text-green-500' : 'text-red-500'} />
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Token Holdings</p>
+                    <p className="text-2xl font-bold text-gray-900">{tokens.length}</p>
+                    <p className="text-xs text-gray-500">All networks</p>
+                  </div>
+                  <CoinIcon />
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Social Status</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {socialEnabled ? 'Active' : 'Setup Required'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {socialEnabled ? 'Discord/Twitter' : 'Connect social'}
+                    </p>
+                  </div>
+                  <SocialIcon />
                 </div>
               </div>
             </div>
 
-            {/* Token Portfolio */}
+            {/* Real Token Portfolio from Wallet */}
             <div className="bg-white rounded-lg border">
-              <div className="px-6 py-4 border-b">
-                <h3 className="text-lg font-medium text-gray-900">My Tokens</h3>
+              <div className="px-6 py-4 border-b flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900">Your Wallet Tokens</h3>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="text-blue-600 hover:text-blue-700 text-sm disabled:opacity-50"
+                >
+                  <RefreshIcon className="h-4 w-4 mr-1" />
+                  {refreshing ? 'Refreshing...' : 'Refresh Data'}
+                </button>
               </div>
               <div className="divide-y divide-gray-200">
-                {userData.portfolio.map((token, index) => (
+                {tokens.map((token, index) => (
                   <div key={index} className="px-6 py-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
@@ -383,13 +442,15 @@ export function UserDashboard() {
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-900">{token.name}</h4>
-                          <p className="text-sm text-gray-600">{token.symbol} • {token.network}</p>
+                          <p className="text-sm text-gray-600">{token.symbol} • {token.address.slice(0, 6)}...{token.address.slice(-4)}</p>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">{token.type}</div>
-                        <div className="text-sm text-gray-600">{token.supply.toLocaleString()} supply</div>
+                        <div className="text-sm font-medium text-gray-900">{token.balance} {token.symbol}</div>
+                        <div className={`text-sm ${token.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {token.value} ({token.change24h >= 0 ? '+' : ''}{token.change24h}%)
+                        </div>
                       </div>
 
                       <div className="flex items-center space-x-2">
@@ -407,45 +468,168 @@ export function UserDashboard() {
                   </div>
                 ))}
               </div>
+
+              {tokens.length === 0 && (
+                <div className="px-6 py-8 text-center">
+                  <WalletIcon />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No tokens found</h3>
+                  <p className="mt-1 text-sm text-gray-500">Your wallet doesn't have any tokens yet, or they may take a moment to load.</p>
+                  <button
+                    onClick={handleRefresh}
+                    className="mt-3 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <RefreshIcon className="h-4 w-4 mr-2" />
+                    Refresh Data
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Activity Tab */}
+        {/* Activity Tab - Real transaction history */}
         {selectedTab === 'activity' && (
           <div className="bg-white rounded-lg border">
             <div className="px-6 py-4 border-b">
-              <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+              <h3 className="text-lg font-medium text-gray-900">Transaction History</h3>
             </div>
             <div className="divide-y divide-gray-200">
-              {userData.recentActivity.map((activity, index) => (
+              {transactions.map((tx, index) => (
                 <div key={index} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                        <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                        <SimpleSwapIcon />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{activity.action} {activity.token}</p>
-                        <p className="text-sm text-gray-600">{activity.date}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          Wallet Transaction
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {formatDate(tx.timestamp)}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">+{activity.value} ETH</p>
-                      <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        Success
+                      <p className="text-sm font-medium text-gray-900">
+                        {tx.value} ETH
+                      </p>
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        tx.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {tx.status}
                       </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+
+            {transactions.length === 0 && (
+              <div className="px-6 py-8 text-center">
+                <HistoryIcon />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Start trading or deploying smart contracts to see your transaction history.</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Markets Tab */}
+        {/* Settings Tab */}
+        {selectedTab === 'settings' && (
+          <div className="bg-white rounded-lg border p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-6">Dashboard Settings</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* Connected Wallet */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Connected Wallet
+                </label>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-sm bg-gray-100 px-3 py-2 rounded">
+                    {address ? formatAddress(address) : 'Not connected'}
+                  </span>
+                  <span className="text-sm text-green-600 px-2 py-1 bg-green-100 rounded">
+                    ✓ Connected
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Network: {network}</p>
+              </div>
+
+              {/* Social Connections */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Social Connections
+                </label>
+                {!socialEnabled ? (
+                  <>
+                    <span className="text-sm text-orange-600">Not connected</span>
+                    <button
+                      onClick={activateSocialFeatures}
+                      className="ml-3inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      Connect
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-1">
+                    {socialProfiles.discord && (
+                      <div className="flex items-center">
+                        <SocialIcon />
+                        <span className="ml-2 text-sm text-green-600">Discord connected</span>
+                      </div>
+                    )}
+                    {socialProfiles.twitter && (
+                      <div className="flex items-center">
+                        <SocialIcon />
+                        <span className="ml-2 text-sm text-green-600">Twitter connected</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Auto-refresh settings */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Auto-refresh
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input type="checkbox" defaultChecked className="mr-3" />
+                    <label className="text-sm text-gray-700">Enable auto-refresh (30s)</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" defaultChecked className="mr-3" />
+                    <label className="text-sm text-gray-700">Show gas price alerts</label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data export */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Export Data
+                </label>
+                <div className="space-x-2">
+                  <button className="px-3 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700">
+                    Portfolio
+                  </button>
+                  <button className="px-3 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700">
+                    Transactions
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Markets Tab - Keep as-is for market data */}
         {selectedTab === 'market' && (
           <div>
             <div className="mb-6">
@@ -502,57 +686,6 @@ export function UserDashboard() {
                   <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-500">Interactive price charts would display here</p>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Settings Tab */}
-        {selectedTab === 'settings' && (
-          <div className="bg-white rounded-lg border p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-6">Dashboard Settings</h3>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notification Preferences
-                </label>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-3" />
-                    <label className="text-sm text-gray-700">New token deployments</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-3" />
-                    <label className="text-sm text-gray-700">Market price alerts</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input type="checkbox" className="mr-3" />
-                    <label className="text-sm text-gray-700">Weekly reports</label>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Connected Wallet
-                </label>
-                <div className="flex items-center space-x-2">
-                  <span className="font-mono text-sm bg-gray-100 px-3 py-1 rounded">
-                    {user?.address?.slice(0, 6)}...{user?.address?.slice(-4)}
-                  </span>
-                  <span className="text-sm text-green-600">Connected</span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h4 className="text-md font-medium text-gray-900 mb-3">Export Data</h4>
-                <button className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 mr-3">
-                  Download Portfolio
-                </button>
-                <button className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700">
-                  Download Activity
-                </button>
               </div>
             </div>
           </div>
