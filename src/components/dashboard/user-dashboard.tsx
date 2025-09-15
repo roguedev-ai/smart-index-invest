@@ -1,43 +1,144 @@
 "use client"
 
-import { useState } from "react"
-import { useWallet } from "@/components/providers/wallet-provider"
-import { mockPortfolio } from "@/lib/trading"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import Link from "next/link"
+import { SmartIndex, SmartIndexTypes } from "@/types/smart-index"
 
-// Fallback icons
-const SwapIcon = () => (
+interface WalletToken {
+  symbol: string
+  name: string
+  balance: string
+  value: string
+  change24h: number
+  icon?: string
+}
+
+interface Contract {
+  name: string
+  symbol: string
+  address: string
+  type: 'ERC20' | 'ERC721' | 'SmartIndex' | 'UniswapV3'
+  network: string
+  created: Date
+  status: 'deployed' | 'pending' | 'failed'
+}
+
+interface Trade {
+  id: string
+  type: 'buy' | 'sell' | 'swap'
+  asset: string
+  amount: string
+  price: string
+  total: string
+  status: 'pending' | 'completed' | 'failed'
+  timestamp: number
+  txHash?: string
+}
+
+// All icon components as inline SVGs
+const PlusIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+  </svg>
+)
+
+const CoinIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <circle cx="12" cy="12" r="10" strokeWidth={1} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+  </svg>
+)
+
+const WalletIcon = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+  </svg>
+)
+
+const TrendingUpBig = () => (
+  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+)
+
+const CoinSmallIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <circle cx="12" cy="12" r="10" strokeWidth={1} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+  </svg>
+)
+
+const Eye = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+  </svg>
+)
+
+const ExternalLink = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+)
+
+const SimpleSwapIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
   </svg>
 )
+
 const PortfolioIconComponent = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 )
+
 const TrendUpIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
   </svg>
 )
+
 const TrendDownIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
   </svg>
 )
+
 const TokenIconUser = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
   </svg>
 )
+
 const HistoryIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 )
+
 const SettingIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066 1.758 1.758 0 001.053 2.643c1.646.366 1.646 2.688 0 3.054-.483 1.036-1.683 1.036-2.166 0a1.724 1.724 0 00-2.573 1.066c1.244.749 1.244 2.684 0 3.433a1.724 1.724 0 00-2.573-1.066c-1.646-.366-1.646-2.688 0-3.054.483-1.036 1.683-1.036 2.166 0a1.724 1.724 0 002.573-1.066c-.427-1.756-2.925-1.756-3.35 0zM12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
+  </svg>
+)
+
+const TrendingUp = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+)
+
+const TrendingDown = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+  </svg>
+)
+
+const BarChart3 = () => (
+  <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 )
 
@@ -68,17 +169,109 @@ const cryptoPrices = [
 ]
 
 export function UserDashboard() {
-  const { address, isConnected } = useWallet()
-  const [selectedTab, setSelectedTab] = useState("portfolio")
+  const { user, isAuthenticated, logout } = useAuth()
+  const [selectedTab, setSelectedTab] = useState("overview")
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
 
-  if (!isConnected) {
+  // User data
+  const [ walletTokens, setWalletTokens ] = useState<WalletToken[]>([])
+  const [userIndexes, setUserIndexes] = useState<SmartIndex[]>([])
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [tradeHistory, setTradeHistory] = useState<Trade[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchUserData()
+    }
+  }, [isAuthenticated, user])
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch user's indexes (existing functionality)
+      if (user?.address) {
+        const indexesResponse = await fetch(`/api/user/${user.address}/indexes`)
+        if (indexesResponse.ok) {
+          const data = await indexesResponse.json()
+          setUserIndexes(data.indexes || [])
+        }
+
+        // Fetch user's contracts (API to be created)
+        const contractsResponse = await fetch(`/api/user/${user.address}/contracts`)
+        if (contractsResponse.ok) {
+          const data = await contractsResponse.json()
+          setContracts(data.contracts || [])
+        }
+
+        // Fetch user's trading history
+        const tradesResponse = await fetch(`/api/user/${user.address}/trades`)
+        if (tradesResponse.ok) {
+          const data = await tradesResponse.json()
+          setTradeHistory(data.trades || [])
+        }
+      }
+
+      // Simulate wallet tokens from localStorage (production: blockchain calls)
+      loadWalletTokens()
+
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadWalletTokens = () => {
+    // Mock wallet tokens - in production: fetch from wallet/blockchain
+    const mockTokens: WalletToken[] = [
+      { symbol: 'ETH', name: 'Ethereum', balance: '2.145', value: '$7,543.25', change24h: 2.4 },
+      { symbol: 'USDC', name: 'USD Coin', balance: '1,250.00', value: '$1,250.00', change24h: 0.0 },
+      { symbol: 'WMATIC', name: 'Wrapped Polygon', balance: '685.23', value: '$557.84', change24h: -1.8 },
+      { symbol: 'PIT_001', name: 'My Smart Index', balance: '150.00', value: '$375.00', change24h: 5.7 },
+      { symbol: 'PIT_002', name: 'DeFi Kings', balance: '75.50', value: '$283.88', change24h: 8.9 }
+    ]
+    setWalletTokens(mockTokens)
+  }
+
+  const totalWalletValue = walletTokens.reduce((total, token) => {
+    return total + parseFloat(token.value.replace(/[$,]/g, ''))
+  }, 0)
+
+  const walletChange24h = walletTokens.reduce((total, token) => {
+    return total + (parseFloat(token.value.replace(/[$,]/g, '')) * (token.change24h / 100))
+  }, 0)
+
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full text-center">
-          <SwapIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Wallet</h2>
-          <p className="text-gray-600 mb-6">View your token portfolio and track performance</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-6">🔐</div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Please Connect Your Wallet
+          </h1>
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            Access your personal dashboard to view wallet contents, track trading performance,
+            monitor your smart indexes, and manage deployed contracts.
+          </p>
+          <div className="space-y-4">
+            <Link href="/web-wallet/create">
+              <button className="block w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-700 transition-all duration-300">
+                Create Web Wallet →
+              </button>
+            </Link>
+            <p className="text-sm text-gray-600">or</p>
+            <Link href="/">
+              <button className="block w-full px-8 py-4 border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all duration-300">
+                Connect External Wallet →
+              </button>
+            </Link>
+          </div>
+
         </div>
       </div>
     )
@@ -110,8 +303,8 @@ export function UserDashboard() {
           <div className="flex space-x-8">
             {[
               { id: 'portfolio', label: 'Portfolio', icon: TokenIconUser },
-              { id: 'liquidity', label: 'Liquidity', icon: SwapIcon },
-              { id: 'trading', label: 'Trading', icon: SwapIcon },
+              { id: 'liquidity', label: 'Liquidity', icon: SimpleSwapIcon },
+              { id: 'trading', label: 'Trading', icon: SimpleSwapIcon },
               { id: 'activity', label: 'Activity', icon: HistoryIcon },
               { id: 'market', label: 'Markets', icon: TrendUpIcon },
               { id: 'settings', label: 'Settings', icon: SettingIcon }
@@ -150,7 +343,7 @@ export function UserDashboard() {
                     <p className="text-sm text-gray-600">Total Tokens</p>
                     <p className="text-2xl font-bold text-gray-900">{userData.totalTokens}</p>
                   </div>
-                  <Tokens className="h-8 w-8 text-blue-600" />
+                  <CoinIcon />
                 </div>
               </div>
 
@@ -160,7 +353,7 @@ export function UserDashboard() {
                     <p className="text-sm text-gray-600">Portfolio Value</p>
                     <p className="text-2xl font-bold text-gray-900">{userData.totalValue} ETH</p>
                   </div>
-                  <Wallet className="h-8 w-8 text-green-600" />
+                  <WalletIcon />
                 </div>
               </div>
 
@@ -186,7 +379,7 @@ export function UserDashboard() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                          <Tokens className="h-5 w-5 text-blue-600" />
+                          <CoinSmallIcon />
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-900">{token.name}</h4>
@@ -346,7 +539,7 @@ export function UserDashboard() {
                 </label>
                 <div className="flex items-center space-x-2">
                   <span className="font-mono text-sm bg-gray-100 px-3 py-1 rounded">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                    {user?.address?.slice(0, 6)}...{user?.address?.slice(-4)}
                   </span>
                   <span className="text-sm text-green-600">Connected</span>
                 </div>
