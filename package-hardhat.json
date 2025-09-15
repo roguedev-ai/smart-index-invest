@@ -1,0 +1,32 @@
+{
+  "name": "tokenmarket-contracts",
+  "version": "1.0.0",
+  "description": "Smart Contract Layer for TokenMarket DeFi Platform",
+  "main": "hardhat.config.ts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:hardhat": "hardhat run scripts/deploy.ts --network hardhat",
+    "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.7",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "ethers": "^6.13.0",
+    "chai": "^4.4.1",
+    "hardhat": "^2.22.8",
+    "hardhat-gas-reporter": "^2.2.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
+    "ethers": "^6.13.0"
+  }
+}
