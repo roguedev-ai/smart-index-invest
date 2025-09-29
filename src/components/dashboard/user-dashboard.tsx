@@ -46,8 +46,8 @@ const PlusIcon = () => (
   </svg>
 )
 
-const CoinIcon = () => (
-  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+const CoinIcon = ({ className }: { className?: string }) => (
+  <svg className={`h-8 w-8 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <circle cx="12" cy="12" r="10" strokeWidth={1} />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
   </svg>
@@ -59,8 +59,8 @@ const WalletIcon = () => (
   </svg>
 )
 
-const TrendingUpBig = () => (
-  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+const TrendingUpBig = ({ className }: { className?: string }) => (
+  <svg className={`h-8 w-8 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
   </svg>
 )
@@ -139,8 +139,8 @@ const TrendingDown = () => (
   </svg>
 )
 
-const BarChart3 = () => (
-  <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+const BarChart3 = ({ className }: { className?: string }) => (
+  <svg className={`h-12 w-12 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 )
@@ -170,6 +170,7 @@ const cryptoPrices = [
 ]
 
 export function UserDashboard() {
+  // ALL hooks must be called at the top level - in the same order every render
   const { user, isAuthenticated, logout } = useAuth()
   const {
     address,
@@ -184,9 +185,14 @@ export function UserDashboard() {
     activateSocialFeatures
   } = useWallet()
 
+  const [isMounted, setIsMounted] = useState(false)
   const [selectedTab, setSelectedTab] = useState("portfolio")
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // User data arrays now use real wallet data
   const [userIndexes, setUserIndexes] = useState<SmartIndex[]>([])

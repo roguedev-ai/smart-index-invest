@@ -116,18 +116,40 @@ export async function POST(request: NextRequest) {
 
     console.log(`Token weights validation passed - total: ${totalWeight}`)
 
-    // Validate individual token weights
-    const invalidWeight = (body.tokens as any[]).find((token: any) =>
-      token.weight < 0 || token.weight > (body.rules?.maxSingleAssetExposure || 100) || false
-    )
-    if (invalidWeight) {
-      return NextResponse.json({
-        success: false,
-        error: `Invalid token weight: ${invalidWeight.symbol} (${invalidWeight.weight}%) `,
-        timestamp: Date.now(),
-        requestId: crypto.randomUUID()
-      }, { status: 400 })
+    // Enhanced validation: Allow single asset strategies (100% one token)
+    if ((body.tokens as any[]).length === 1) {
+      // Single asset strategy - allow 100%
+      const token = body.tokens[0]
+      if (token.weight !== 100) {
+        return NextResponse.json({
+          success: false,
+          error: `Single asset strategy must have 100% allocation. Got: ${token.symbol} (${token.weight}%)`,
+          indexType: 'single-asset',
+          timestamp: Date.now(),
+          requestId: crypto.randomUUID()
+        }, { status: 400 })
+      }
+      console.log(`Single asset strategy validation passed: ${token.symbol} (100%)`)
+    } else {
+      // Multi-asset index - validate individual weights (5-80% per token)
+      const invalidWeight = (body.tokens as any[]).find((token: any) =>
+        token.weight < 5 || token.weight > 80
+      )
+      if (invalidWeight) {
+        return NextResponse.json({
+          success: false,
+          error: `Multi-asset index token weight must be 5-80% per asset. Got: ${invalidWeight.symbol} (${invalidWeight.weight}%)`,
+          suggestion: 'For single asset strategies, use 100% allocation on one token',
+          indexType: 'multi-asset',
+          timestamp: Date.now(),
+          requestId: crypto.randomUUID()
+        }, { status: 400 })
+      }
+      console.log(`Multi-asset index validation passed - ${body.tokens.length} tokens in 5-80% range`)
     }
+
+    // Determine index type based on tokens
+    const indexType = (body.tokens as any[]).length === 1 ? 'single-asset' : 'multi-asset'
 
     // Create new index with default values
     const newIndex: SmartIndex = {
@@ -150,7 +172,8 @@ export async function POST(request: NextRequest) {
         updatedAt: Date.now(),
         version: '1.0',
         whitelistStatus: 'whitelisted',
-        complianceFlags: []
+        complianceFlags: [],
+        indexType
       },
       status: 'draft'
     }
@@ -158,9 +181,17 @@ export async function POST(request: NextRequest) {
     // Add to mock store (replace with database in production)
     mockIndexes.push(newIndex)
 
+    console.log(`Index created successfully: ${newIndex.name} (${indexType})`)
+
     return NextResponse.json({
       success: true,
-      data: newIndex,
+      data: {
+        ...newIndex,
+        indexType,
+        message: indexType === 'single-asset'
+          ? `Single Asset Strategy created: ${body.tokens[0].symbol} (100%)`
+          : `Multi-Asset Index created: ${body.tokens.length} tokens`
+      },
       timestamp: Date.now(),
       requestId: crypto.randomUUID()
     })

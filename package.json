@@ -10,7 +10,7 @@
     "lint:fix": "eslint --fix",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "prepare": "husky init && npm run prepare:husky",
+    "prepare": "husky",
     "prepare:husky": "npx husky add .husky/pre-commit \"npm run lint && npm run type-check\""
   },
   "dependencies": {
@@ -27,7 +27,7 @@
     "@tanstack/react-query-devtools": "^5.24.0",
     "next-themes": "^0.3.0",
     "framer-motion": "^11.2.6",
-    "lucide-react": "^0.388.0",
+    "lucide-react": "^0.544.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
