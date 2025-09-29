@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/providers/wallet-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Header } from "@/components/layout/header";
 import { SimpleHelpSystem } from "@/components/help/simple-help";
@@ -33,13 +34,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900`}>
-        <AuthProvider>
-          <WalletProvider>
-            <Header />
-            {children}
-            <SimpleHelpSystem />
-          </WalletProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <WalletProvider>
+              <Header />
+              {children}
+              <SimpleHelpSystem />
+            </WalletProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

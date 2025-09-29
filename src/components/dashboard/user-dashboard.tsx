@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useWallet } from "@/components/providers/wallet-provider"
 import Link from "next/link"
 import { SmartIndex, SmartIndexTypes } from "@/types/smart-index"
+import { PortfolioValueCard } from "./PortfolioValueCard"
 
 // Inherit from WalletToken interface
 interface WalletToken {
@@ -267,10 +268,13 @@ export function UserDashboard() {
     })
   }
 
+  // Show loading/connect screen before hydration, then conditionally render based on wallet state
+  const showConnectWallet = !isMounted || !isConnected || !address
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* CONDITIONAL CONTENT BASED ON CONNECTION STATUS */}
-      {!isConnected || !address ? (
+      {/* CONSISTENT RENDERING - Same structure on server and client */}
+      {showConnectWallet ? (
         /* NOT CONNECTED STATE */
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center max-w-md mx-auto p-6">
@@ -412,6 +416,16 @@ export function UserDashboard() {
         {/* Portfolio Tab - Now using real wallet data */}
         {selectedTab === 'portfolio' && (
           <div>
+            {/* Real-time Portfolio Value Card */}
+            <PortfolioValueCard
+              assets={[
+                { symbol: 'BTC', coinGeckoId: 'bitcoin', amount: 0.5 },
+                { symbol: 'ETH', coinGeckoId: 'ethereum', amount: 2.0 },
+                { symbol: 'USDC', coinGeckoId: 'usd-coin', amount: 1000 },
+              ]}
+              className="mb-8"
+            />
+
             {/* Overview Stats - Real wallet data */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg border">
