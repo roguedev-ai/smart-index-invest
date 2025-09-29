@@ -267,107 +267,147 @@ export function UserDashboard() {
     })
   }
 
-  // Redirect to wallet connection if not connected
-  if (!isConnected || !address) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-6xl mb-6">🔐</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Connect Your Wallet
-          </h1>
-          <p className="text-gray-600 mb-8">
-            Access your personal dashboard to view wallet contents, track trading performance,
-            monitor your smart indexes, and manage deployed contracts.
-          </p>
-          <div className="space-y-4">
-            <Link href="/wallet/onboard">
-              <button className="block w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-700 transition-all duration-300">
-                Connect to MetaMask →
-              </button>
-            </Link>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                Supported: MetaMask • WalletConnect (coming soon)
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with wallet status */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
-              <div className="flex items-center gap-4 mt-1">
-                <span className="text-sm text-gray-600">Network: {network || 'Unknown'}</span>
-                <span className="text-sm text-gray-600">Address: {formatAddress(address)}</span>
-                {socialEnabled && (
-                  <div className="flex items-center gap-1">
-                    <SocialIcon />
-                    <span className="text-sm text-green-600">Social</span>
-                  </div>
-                )}
+      {/* CONDITIONAL CONTENT BASED ON CONNECTION STATUS */}
+      {!isConnected || !address ? (
+        /* NOT CONNECTED STATE */
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center max-w-md mx-auto p-6">
+            <div className="text-6xl mb-6">🔐</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Connect Your Wallet
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Access your personal dashboard to view wallet contents, track trading performance,
+              monitor your smart indexes, and manage deployed contracts.
+            </p>
+            <div className="space-y-4">
+              <Link href="/wallet/onboard">
+                <button className="block w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-700 transition-all duration-300">
+                  Connect to MetaMask →
+                </button>
+              </Link>
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Supported: MetaMask • WalletConnect (coming soon)
+                </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshIcon className="h-5 w-5 mr-2" />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Create New Token
-              </button>
+          </div>
+        </div>
+      ) : (
+        /* CONNECTED STATE - DASHBOARD */
+        /* DASHBOARD STATE - Exact same container structure */
+        <>
+          <header className="bg-white shadow-sm border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
+                  <div className="flex items-center gap-4 mt-1">
+                    <span className="text-sm text-gray-600">Network: {network || 'Unknown'}</span>
+                    <span className="text-sm text-gray-600">Address: {formatAddress(address)}</span>
+                    {socialEnabled && (
+                      <div className="flex items-center gap-1">
+                        <SocialIcon />
+                        <span className="text-sm text-green-600">Social</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshIcon className="h-5 w-5 mr-2" />
+                    {refreshing ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                  {/* Creation Options Dropdown */}
+                  <div className="relative">
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center"
+                      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                      <PlusIcon className="h-5 w-5 mr-2" />
+                      Create
+                      <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {mobileMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border">
+                        <div className="py-1">
+                          <Link href="/create" onClick={() => setMobileMenuOpen(false)}>
+                            <div className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                <CoinIcon className="text-green-600" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">Create Token</div>
+                                <div className="text-sm text-gray-600">Launch a single ERC-20 token</div>
+                              </div>
+                            </div>
+                          </Link>
+
+                          <Link href="/index/create" onClick={() => setMobileMenuOpen(false)}>
+                            <div className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                <TrendingUpBig className="text-purple-600" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">Create Smart Index</div>
+                                <div className="text-sm text-gray-600">Build a multi-token portfolio</div>
+                              </div>
+                            </div>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            {[
-              { id: 'portfolio', label: 'Portfolio', icon: TokenIconUser },
-              { id: 'liquidity', label: 'Liquidity', icon: SimpleSwapIcon },
-              { id: 'trading', label: 'Trading', icon: SimpleSwapIcon },
-              { id: 'activity', label: 'Activity', icon: HistoryIcon },
-              { id: 'market', label: 'Markets', icon: TrendUpIcon },
-              { id: 'settings', label: 'Settings', icon: SettingIcon }
-            ].map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setSelectedTab(tab.id)}
-                  className={`flex items-center px-1 py-4 border-b-2 text-sm font-medium ${
-                    selectedTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 mr-2" />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </nav>
+          {/* Navigation */}
+          <nav className="bg-white border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex space-x-8">
+                {[
+                  { id: 'portfolio', label: 'Portfolio', icon: TokenIconUser },
+                  { id: 'liquidity', label: 'Liquidity', icon: SimpleSwapIcon },
+                  { id: 'trading', label: 'Trading', icon: SimpleSwapIcon },
+                  { id: 'activity', label: 'Activity', icon: HistoryIcon },
+                  { id: 'market', label: 'Markets', icon: TrendUpIcon },
+                  { id: 'settings', label: 'Settings', icon: SettingIcon }
+                ].map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSelectedTab(tab.id)}
+                      className={`flex items-center px-1 py-4 border-b-2 text-sm font-medium ${
+                        selectedTab === tab.id
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mr-2" />
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {/* Main Content */}
+          <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
 
         {/* Portfolio Tab - Now using real wallet data */}
         {selectedTab === 'portfolio' && (
@@ -696,7 +736,9 @@ export function UserDashboard() {
             </div>
           </div>
         )}
-      </main>
+          </main>
+        </>
+      )}
     </div>
   )
 }
