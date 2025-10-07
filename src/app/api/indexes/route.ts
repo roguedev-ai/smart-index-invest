@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { SmartIndex, CreateIndexRequest, SmartIndexTypes } from '@/types/smart-index'
+import { getDiscordClient } from '@/lib/discord'
 
 // Mock data store (replace with real database in production)
 const mockIndexes: SmartIndex[] = []
@@ -182,6 +183,24 @@ export async function POST(request: NextRequest) {
     mockIndexes.push(newIndex)
 
     console.log(`Index created successfully: ${newIndex.name} (${indexType})`)
+
+    // Send Discord notification for successful index creation
+    if (process.env.NEXT_PUBLIC_ENABLE_DISCORD_INTEGRATION === 'true') {
+      const discord = getDiscordClient();
+      if (discord) {
+        // Calculate total value if available
+        const totalValue = newIndex.tvl ? `$${newIndex.tvl.toLocaleString()}` : undefined;
+
+        discord.sendIndexAlert({
+          indexName: newIndex.name,
+          creator: newIndex.creator || 'Anonymous',
+          action: 'created',
+          timestamp: new Date(newIndex.metadata.createdAt),
+          tokenCount: newIndex.tokens?.length || 0,
+          totalValue,
+        }).catch(console.error); // Non-blocking, log errors
+      }
+    }
 
     return NextResponse.json({
       success: true,
