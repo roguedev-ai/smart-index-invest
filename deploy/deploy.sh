@@ -15,10 +15,14 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Configuration
+# Configuration - UPDATE THESE VALUES FOR YOUR DEPLOYMENT
 DOMAIN="smartindexinvest.com"
 EMAIL="admin@smartindexinvest.com"
 PROJECT_NAME="tokenmarket"
+
+# REPLACE WITH YOUR GITHUB PAT (do not commit real tokens)
+# This is a placeholder - set your actual PAT as environment variable
+# GITHUB_PAT="${GITHUB_PAT:-your_personal_access_token}""
 
 # Logging functions
 log_info() {
